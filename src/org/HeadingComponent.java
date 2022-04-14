@@ -1,0 +1,98 @@
+package org.csc133.a3;
+
+/** Represents Heading Component of GlassCockpit
+ * @author  Daniel Olsen
+ * @version 2.0
+ * @since   11/20/2020
+ */
+
+import com.codename1.charts.util.ColorUtil;
+import com.codename1.ui.Component;
+import com.codename1.ui.Graphics;
+import com.codename1.ui.geom.Dimension;
+
+import java.io.IOException;
+
+public class HeadingComponent extends Component {
+    private com.codename1.ui.Image[] digitImages = new com.codename1.ui.Image[10];
+    private com.codename1.ui.Image[] headDigits = new com.codename1.ui.Image[3];
+    private int ledColor;
+    private int numOfDigits = 3;
+
+    /**
+     * Constructor for Heading Component
+     */
+    public HeadingComponent() {
+        ledColor = ColorUtil.rgb(91, 27, 73);
+
+        try {
+            for (int i = 0; i < 10; i++) {
+                digitImages[i] = com.codename1.ui.Image.createImage("/LED_digit_" + i + ".png");
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+
+
+        for (int i = 0; i < numOfDigits; i++) {
+            headDigits[i] = digitImages[0];
+        }
+    }
+
+    /**
+     * Sets heading to be displayed in GlassCockpit
+     * @param heading Integer
+     */
+    public void setHeading(int heading){
+        headDigits[0] = digitImages[heading/100];
+        headDigits[1] = digitImages[(heading%100)/10];
+        headDigits[2] = digitImages[((heading%10)%10)];
+    }
+
+    /**
+     * Calculates the preferred size based on component content. This method is
+     * invoked lazily by getPreferred size.
+     *
+     * @return the calculated preferred size based on component content
+     */
+    protected Dimension calcPreferredSize(){
+        return new Dimension(digitImages[0].getWidth()*numOfDigits, digitImages[0].getHeight());
+    }
+
+    /**
+     * This method paints the Component on the screen, it should be overriden
+     * by subclasses to perform custom drawing or invoke the UI API's to let
+     * the PLAF perform the rendering.
+     *
+     * @param g the component graphics
+     */
+    public void paint(Graphics g){
+        super.paint(g);
+        final int COLOR_PAD = 1;
+
+        int digitWidth = headDigits[0].getWidth();
+        int digitHeight = headDigits[0].getHeight();
+        int clockWidth = numOfDigits*digitWidth;
+
+        float scaleFactor = Math.min(
+                getInnerHeight()/(float)digitHeight,
+                getInnerWidth()/(float) clockWidth);
+
+        int displayDigitWidth = (int) (scaleFactor * digitWidth);
+        int displayDigitHeight = (int) (scaleFactor * digitHeight);
+        int displayFuelWidth = numOfDigits*displayDigitWidth;
+
+        int displayX = getX() + (getWidth()-displayFuelWidth)/2;
+        int displayY = getY() + (getHeight()-displayDigitHeight)/2;
+
+        g.setColor(ledColor);
+        g.fillRect(displayX+COLOR_PAD,
+                displayY+COLOR_PAD,
+                displayFuelWidth - COLOR_PAD*2,
+                displayDigitHeight-COLOR_PAD*2);
+
+        for(int digitIndex = 0; digitIndex < numOfDigits; digitIndex++)
+        {
+            g.drawImage(headDigits[digitIndex], displayX+digitIndex*displayDigitWidth, displayY, displayDigitWidth, displayDigitHeight);
+        }
+
+    }
+}
